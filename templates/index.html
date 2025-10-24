@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Emotion Recommender</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🎧 Emotion-Based Recommender</h1>
+
+        <div class="selectors">
+            <label for="mood">Select Mood:</label>
+            <select id="mood">
+                <option value="happy">Happy</option>
+                <option value="sad">Sad</option>
+                <option value="angry">Angry</option>
+                <option value="relaxed">Relaxed</option>
+                <option value="excited">Excited</option>
+            </select>
+
+            <label for="category">Select Category:</label>
+            <select id="category">
+                <option value="music">Music</option>
+                <option value="movies">Movies</option>
+                <option value="books">Books</option>
+                <option value="recipes">Recipes</option>
+            </select>
+
+            <button id="getBtn">Get Recommendations</button>
+            <button id="refreshBtn">🔁 Refresh</button>
+        </div>
+
+        <ul id="results"></ul>
+    </div>
+
+    <script>
+        const getBtn = document.getElementById('getBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const results = document.getElementById('results');
+
+        async function fetchData() {
+            const mood = document.getElementById('mood').value;
+            const category = document.getElementById('category').value;
+
+            const formData = new FormData();
+            formData.append('mood', mood);
+            formData.append('category', category);
+
+            try {
+                const response = await fetch('/recommend', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    console.error("Server error:", response.statusText);
+                    return;
+                }
+
+                const data = await response.json();
+                results.innerHTML = '';
+
+                if (data.length === 0) {
+                    results.innerHTML = '<li>No recommendations found for this mood.</li>';
+                } else {
+                    data.forEach(item => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<strong>${item.title}</strong> — ${item.description}`;
+                        results.appendChild(li);
+                    });
+                }
+            } catch (err) {
+                console.error("Error fetching data:", err);
+            }
+        }
+
+        getBtn.addEventListener('click', fetchData);
+        refreshBtn.addEventListener('click', fetchData);
+    </script>
+</body>
+</html>
